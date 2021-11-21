@@ -8,39 +8,57 @@
 #define LEFT   75 
 #define RIGHT   77 
 #define SUBMIT 32
-#define ESC 27 // 아스키 코드 ctrl + ecs == 27
+#define ESC 27 // 아스키 코드 ecs == 27
 
-using namespace std;
+char map[][73] = {
+	{"00222000n00212000n00202222n22234312n21030222n22223200n00021200n00022200n"},
+	{"00222n00212n00202222n22230312n21030222n222202n000242n000222n"}
+};
 
-int x = 20; int y = 5; // 화면 중앙값 
-
-char map[8][8] = {
-	{00222000},
-	{00212000},
-	{00202222},
-	{22230312},
-	{21030222},
-	{22223200},
-	{00021200},
-	{00022200},
-}; //구조체로 하려고 했는데 잘 모르겠어서 땜빵해논 맵
-
-typedef struct map
+enum {
+	BLACK, /* 0 : 까망 */
+	DARK_BLUE, /* 1 : 어두운 파랑 */
+	DARK_GREEN, /* 2 : 어두운 초록 */
+	DARK_SKY_BLUE, /* 3 : 어두운 하늘 */
+	DARK_RED, /* 4 : 어두운 빨강 */
+	DARK_VIOLET, /* 5 : 어두운 보라 */
+	DARK_YELLOW, /* 6 : 어두운 노랑 */
+	GRAY, /* 7 : 회색 */
+	DARK_GRAY, /* 8 : 어두운 회색 */
+	BLUE, /* 9 : 파랑 */
+	GREEN, /* 10 : 초록 */
+	SKY_BLUE, /* 11 : 하늘 */
+	RED, /* 12 : 빨강 */
+	VIOLET, /* 13 : 보라 */
+	YELLOW, /* 14 : 노랑 */
+	WHITE, /* 15 : 하양 */
+};
+void setFontColor(int color)
 {
-	char map[3];
-}gamemap; // 게임맵 지정해주는 구조체 
-
+	CONSOLE_SCREEN_BUFFER_INFO buff;
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &buff);
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
+		(buff.wAttributes & 0xf0) | (color & 0xf));
+}
+void setBgColor(int bgcolor) {
+	CONSOLE_SCREEN_BUFFER_INFO buff;
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &buff);
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
+		((bgcolor & 0xf) << 4) | (buff.wAttributes & 0xf));
+}
+void SetColor(int color)
+{
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
 int keyControll(void) {
 	int scale = _getch();
 	return scale;
 } // 키 입력값 가져오는 곳 khbit 쓰고 싶었는데 흠 
-
 void gotoxy(int x, int y) /*커서이동 함수 부분*/
 {
 	COORD pos = { x, y };
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 }
-
 void init() {
 	system("mode con cols=56 lines=20");  // 초기화면 초기화 함수
 	
@@ -51,7 +69,6 @@ void init() {
 	ConsoleCursor.dwSize = 1;
 	SetConsoleCursorInfo(hConsole, &ConsoleCursor);
 }
-
 int menuDraw() {
     int x = 24; int y = 12;
     int scale = 0;
@@ -68,7 +85,7 @@ int menuDraw() {
 			{
 			case UP: if (y > 12) {
 				gotoxy(x - 2, y);
-				printf(" ");
+				printf("  ");
 				gotoxy(x - 2, --y);
 				printf("▣");
 			}
@@ -85,18 +102,118 @@ int menuDraw() {
 			}
 		}
 }
-
-void mapDraw() { 
-	gotoxy(x, y++);
-    printf("#      ##    ##   #####\n");
-	gotoxy(x, y++);
-    printf("#     #  #  #  #    #  \n");
-	gotoxy(x, y++);
-    printf("#     #  #  #  #    #  \n");
+void titleDraw() {
+	int x = 20; int y = 5; 
 	gotoxy(x, y);
+    printf("#      ##    ##   #####\n");
+	gotoxy(x, y+1);
+    printf("#     #  #  #  #    #  \n");
+	gotoxy(x, y+2);
+    printf("#     #  #  #  #    #  \n");
+	gotoxy(x, y+3);
     printf("####   ##    ##     #  \n");
 }
+int maplist() {
+	system("cls");
+	int x = 24; int y = 12;
+	int scale = 0;
+	gotoxy(x - 2, y);
+	printf("▣쉬움");
+	gotoxy(x, y + 1);
+	printf("보통");
+	gotoxy(x, y + 2);
+	printf("어려움");
+	gotoxy(x, y + 3);
+	printf("뒤로가기");
+	while (true)
+	{
+		int menukey = keyControll();
+		switch (menukey)
+		{
+		case UP: if (y > 12) {
+			gotoxy(x - 2, y);
+			printf(" ");
+			gotoxy(x - 2, --y);
+			printf("▣");
+		}
+			   break;
+		case DOWN: if (y < 15) {
+			gotoxy(x - 2, y);
+			printf(" ");
+			gotoxy(x - 2, ++y);
+			printf("▣");
+		}
+				 break;
+		case SUBMIT:
+			return y - 12;
+		}
+	}
 
+}
+void drawUI(int *x, int*y) {
+	setFontColor(WHITE);
+	gotoxy(3, 16);
+	printf("위치 : %02d,%02d", *x, *y);
+	gotoxy(34, 16);
+	printf("점수 추가예정");
+}
+void move(int* x, int* y, int playerx, int playery) {
+	// char mapobj = temp[*y + playery][*x + playerx];
+	gotoxy(*x, *y);
+	printf(" ");
+
+	SetColor(VIOLET);
+	gotoxy(*x + playerx, *y + playery);
+	printf("★");
+
+	*x += playerx;
+	*y += playery;
+
+}
+int mapDraw(int i) {
+	int player_x, player_y;
+	int countx = 0, county = 0;
+	system("cls");
+	for (int j = 0; j < 73; j++) {
+		countx++;
+		char temp = map[i][j];
+			switch (map[i][j])
+			{
+			case '0': printf("  ");
+				break;
+			case '1': SetColor(RED); printf("◎");
+				break;
+			case '2': SetColor(GREEN);  printf("▣");
+				break;
+			case '3': SetColor(DARK_VIOLET);  printf("▦");
+				break;
+			case '4': SetColor(VIOLET); printf("★");
+				player_x = countx; player_y = county;
+			break;
+			case 'n': printf("\n");
+				countx = 0; county ++;
+				break;
+			}
+		}
+
+	for (;;) { // 게임 루프함수 
+		drawUI(&player_x, &player_y);
+		switch (keyControll())
+		{
+			case UP: move(&player_x, &player_y, 0, -1);
+			break;
+			case DOWN: move(&player_x, &player_y, 0, 1);
+			break;
+			case LEFT: move(&player_x, &player_y, -1, 0);
+			break;
+			case RIGHT: move(&player_x, &player_y, 1, 0);
+			break;
+			case ESC :
+			system("cls");
+			return 0;
+		}
+	}
+}
 int information() {
 	
 	system("cls");
@@ -106,7 +223,7 @@ int information() {
 	
 	for (int i = 0; i <4; i++) {
 		for (int j = 0; j < 45; j++) {
-			printf("%c", info[i][j]);
+			setFontColor(WHITE); printf("%c", info[i][j]);
 		}
 		printf("\n");
 	}
@@ -117,16 +234,24 @@ int information() {
 }
 
 int main() {
+	int select;
 	init();
 	while (true)
 	{
-		mapDraw();
+		titleDraw();
 		int menu = menuDraw();
 		system("cls");
 		switch (menu)
 		{
-		case 0:
+		case 0: 
+			select = maplist();
+			if (select == 0) mapDraw(0); 
+		if (select == 1) mapDraw(1);
+		if (select == 2) mapDraw(2);
+		if (select == 3) {
+			system("cls");
 			break;
+		}
 		case 1: information();
 			break;
 		case 2:
