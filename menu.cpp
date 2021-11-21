@@ -158,7 +158,6 @@ void drawUI(int *x, int*y) {
 	printf("점수 추가예정");
 }
 void move(int* x, int* y, int playerx, int playery) {
-	// char mapobj = temp[*y + playery][*x + playerx];
 	gotoxy(*x, *y);
 	printf(" ");
 
@@ -173,10 +172,10 @@ void move(int* x, int* y, int playerx, int playery) {
 int mapDraw(int i) {
 	int player_x, player_y;
 	int countx = 0, county = 0;
+	char temp;
 	system("cls");
 	for (int j = 0; j < 73; j++) {
 		countx++;
-		char temp = map[i][j];
 			switch (map[i][j])
 			{
 			case '0': printf("  ");
@@ -195,18 +194,22 @@ int mapDraw(int i) {
 				break;
 			}
 		}
-
+	temp = map[i][player_x];
 	for (;;) { // 게임 루프함수 
 		drawUI(&player_x, &player_y);
 		switch (keyControll())
 		{
-			case UP: move(&player_x, &player_y, 0, -1);
+		case UP: if (temp == '3') continue;
+				move(&player_x, &player_y, 0, -1);
 			break;
-			case DOWN: move(&player_x, &player_y, 0, 1);
+			case DOWN: if (temp == '3') continue;
+				move(&player_x, &player_y, 0, 1);
 			break;
-			case LEFT: move(&player_x, &player_y, -1, 0);
+			case LEFT: if (temp == '3') continue;
+				move(&player_x, &player_y, -1, 0);
 			break;
-			case RIGHT: move(&player_x, &player_y, 1, 0);
+			case RIGHT: if (temp == '3') continue;
+				move(&player_x, &player_y, 1, 0);
 			break;
 			case ESC :
 			system("cls");
